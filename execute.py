@@ -22,9 +22,9 @@ nonlinearity = 'prelu' # special name to separate parameters
 adj, features, labels, idx_train, idx_val, idx_test = process.load_data(dataset)
 features, _ = process.preprocess_features(features)
 
-nb_nodes = features.shape[0]
-ft_size = features.shape[1]
-nb_classes = labels.shape[1]
+nb_nodes = features.shape[0]  # number of nodes
+ft_size = features.shape[1]   # size of features
+nb_classes = labels.shape[1]   # number of classes
 
 adj = process.normalize_adj(adj + sp.eye(adj.shape[0]))
 
@@ -42,7 +42,7 @@ idx_val = torch.LongTensor(idx_val)
 idx_test = torch.LongTensor(idx_test)
 
 model = DGI(ft_size, hid_units, nonlinearity)
-optimiser = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=l2_coef)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=l2_coef)
 
 if torch.cuda.is_available():
     print('Using CUDA')
@@ -63,9 +63,10 @@ cnt_wait = 0
 best = 1e9
 best_t = 0
 
+# Train
 for epoch in range(nb_epochs):
     model.train()
-    optimiser.zero_grad()
+    optimizer.zero_grad()
 
     idx = np.random.permutation(nb_nodes)
     shuf_fts = features[:, idx, :]

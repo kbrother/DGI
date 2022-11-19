@@ -12,6 +12,9 @@ class DGI(nn.Module):
 
         self.disc = Discriminator(n_h)
 
+    '''
+       output: batch size x 2 * number of nodes
+    '''
     def forward(self, seq1, seq2, adj, sparse, msk, samp_bias1, samp_bias2):
         h_1 = self.gcn(seq1, adj, sparse)
 

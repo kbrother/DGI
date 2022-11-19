@@ -102,6 +102,13 @@ def sample_mask(idx, l):
     mask[idx] = 1
     return np.array(mask, dtype=np.bool)
 
+'''
+    About return value: adj, features, labels, idx_train, idx_val, idx_test,
+    adj: csr matrix
+    features: lil matrix
+    labels: list of list: # node x # labels
+    idx_train, idx_test, idx_val: test
+'''
 def load_data(dataset_str): # {'pubmed', 'citeseer', 'cora'}
     """Load data."""
     names = ['x', 'y', 'tx', 'ty', 'allx', 'ally', 'graph']
@@ -182,7 +189,7 @@ def preprocess_features(features):
     rowsum = np.array(features.sum(1))
     r_inv = np.power(rowsum, -1).flatten()
     r_inv[np.isinf(r_inv)] = 0.
-    r_mat_inv = sp.diags(r_inv)
+    r_mat_inv = sp.diags(r_inv)''
     features = r_mat_inv.dot(features)
     return features.todense(), sparse_to_tuple(features)
 
