@@ -7,9 +7,7 @@ class DGI(nn.Module):
         super(DGI, self).__init__()
         self.gcn = GCN(n_in, n_h, activation)
         self.read = AvgReadout()
-
         self.sigm = nn.Sigmoid()
-
         self.disc = Discriminator(n_h)
 
     '''

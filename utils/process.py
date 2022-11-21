@@ -3,9 +3,11 @@ import pickle as pkl
 import networkx as nx
 import scipy.sparse as sp
 from scipy.sparse.linalg.eigen.arpack import eigsh
+from scipy.sparse import lil_matrix
 import sys
 import torch
 import torch.nn as nn
+import dgl.data as data
 
 def parse_skipgram(fname):
     with open(fname) as f:
@@ -109,7 +111,7 @@ def sample_mask(idx, l):
     labels: list of list: # node x # labels
     idx_train, idx_test, idx_val: test
 '''
-def load_data(dataset_str): # {'pubmed', 'citeseer', 'cora'}
+def load_data_orig(dataset_str): # {'pubmed', 'citeseer', 'cora'}
     """Load data."""
     names = ['x', 'y', 'tx', 'ty', 'allx', 'ally', 'graph']
     objects = []
@@ -148,6 +150,25 @@ def load_data(dataset_str): # {'pubmed', 'citeseer', 'cora'}
 
     return adj, features, labels, idx_train, idx_val, idx_test
 
+'''
+    About return value: adj, features, labels, idx_train, idx_val, idx_test,
+    adj: csr matrix
+    features: lil matrix
+    labels: list of list: # node x # labels
+    idx_train, idx_test, idx_val: test
+'''
+def load_data(dataset_str): 
+    if dataset_str == "cora":
+        dataset = data.CoraFullDataset()
+    elif dataset_str == "citeseer":
+        dataset = data.CiteseerGraphDataset()
+    else:
+        assert(False)
+    _graph = dataset[0]
+    adj = _graph.adjacency_matrix(True, scipy_fmt='csr')    
+    features = _graph.ndata['feat'].numpy().tolist()
+    return adj, lil_matrix(features)
+    
 def sparse_to_tuple(sparse_mx, insert_batch=False):
     """Convert sparse matrix to tuple representation."""
     """Set insert_batch=True if you want to insert a batch dimension."""
@@ -189,7 +210,7 @@ def preprocess_features(features):
     rowsum = np.array(features.sum(1))
     r_inv = np.power(rowsum, -1).flatten()
     r_inv[np.isinf(r_inv)] = 0.
-    r_mat_inv = sp.diags(r_inv)''
+    r_mat_inv = sp.diags(r_inv)
     features = r_mat_inv.dot(features)
     return features.todense(), sparse_to_tuple(features)
 
