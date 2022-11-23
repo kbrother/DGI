@@ -8,6 +8,8 @@ import sys
 import torch
 import torch.nn as nn
 import dgl.data as data
+from ogb.nodeproppred import NodePropPredDataset
+from scipy.sparse import csr_matrix
 
 def parse_skipgram(fname):
     with open(fname) as f:
@@ -158,16 +160,26 @@ def load_data_orig(dataset_str): # {'pubmed', 'citeseer', 'cora'}
     idx_train, idx_test, idx_val: test
 '''
 def load_data(dataset_str): 
-    if dataset_str == "cora":
-        dataset = data.CoraFullDataset()
-    elif dataset_str == "citeseer":
-        dataset = data.CiteseerGraphDataset()
+    if dataset_str == "cora" or dataset_str == "citeseer":
+        if dataset_str == "cora": dataset = data.CoraFullDataset()
+        else: dataset = data.CiteseerGraphDataset()
+        
+        _graph = dataset[0]
+        adj = _graph.adjacency_matrix(True, scipy_fmt='csr')    
+        features = _graph.ndata['feat'].numpy().tolist()
+        features = lil_matrix(features)        
+    
+    elif dataset_str == "ogbn-arxiv":
+        dataset = NodePropPredDataset(name="ogbn-arxiv")
+        graph, label = dataset[0]
+        row, col = graph['edge_index']
+        entries = np.ones(len(row))
+        num_node = graph['num_nodes']
+        adj = csr_matrix((entries, (row, col)), shape=(num_node, num_node))
+        features = lil_matrix(graph['node_feat'])
     else:
-        assert(False)
-    _graph = dataset[0]
-    adj = _graph.adjacency_matrix(True, scipy_fmt='csr')    
-    features = _graph.ndata['feat'].numpy().tolist()
-    return adj, lil_matrix(features)
+        assert(False)    
+    return adj, features
     
 def sparse_to_tuple(sparse_mx, insert_batch=False):
     """Convert sparse matrix to tuple representation."""
